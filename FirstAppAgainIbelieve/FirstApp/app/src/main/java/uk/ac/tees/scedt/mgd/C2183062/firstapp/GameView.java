@@ -27,7 +27,7 @@ public class GameView extends SurfaceView implements Runnable {
     private int currentFrame = 0;
     private int fireScore = 0;
 
-
+    boolean doAnimation;
     private long fps;
     private long timeThisFrame;
     private long lastFrameChangeTime = 0;
@@ -39,14 +39,14 @@ public class GameView extends SurfaceView implements Runnable {
 
 public void spriteLoader(int ResourceID)
 {
-    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.run); //run is the png image of whatever animation
+    bitmap = BitmapFactory.decodeResource(getResources(), ResourceID); //run is the png image of whatever animation
     bitmap = Bitmap.createScaledBitmap(bitmap, frameW * frameCount, frameH, false);
 }
 
     public GameView(Context context) {
         super(context);
         surfaceHolder = getHolder();
-        spriteLoader(R.drawable.run);
+
 
     }
 
@@ -76,19 +76,21 @@ public void spriteLoader(int ResourceID)
     {
         if(surfaceHolder.getSurface().isValid())
         {
+            spriteLoader(R.drawable.run); //Draws Flame Character
+
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
             whereToDraw.set(xPos,yPos, xPos+frameW, yPos+frameH);
-            manageCurrentFrame();
+            manageCurrentFrame(doAnimation);
             canvas.drawBitmap(bitmap, frameToDraw, whereToDraw, null);
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
 
     }
-    public void manageCurrentFrame() //current frame of animation
+    public void manageCurrentFrame(boolean doAnim) //current frame of animation
     {
         long time = System.currentTimeMillis();
-        if (isMoving)
+        if (doAnim)
         {
             if (time > lastFrameChangeTime + frameLengthInMS)
             {
@@ -131,16 +133,20 @@ public void spriteLoader(int ResourceID)
 
         switch (event.getAction() & MotionEvent.ACTION_MASK)
         {
-            case MotionEvent.ACTION_DOWN: // start of a gesture
+            case MotionEvent.ACTION_DOWN: // touch character
                 Log.e("GameView" , "location is " + event.getRawX() + " " + event.getRawY());
                 if (event.getRawX() > xPos & event.getRawX() < xPos + frameW & event.getRawY() > yPos & event.getRawY() < yPos + frameH)
                 {
                     fireScore = fireScore + 1;
                     Log.e("GameView" , "fireScore is " + fireScore);
 
-
                 }
-                //isMoving = true;
+                if (doAnimation )
+                {
+                    doAnimation = false; //Ends Animation
+                }
+                else
+                    {doAnimation = true;} //Starts Animation
 
 
 
