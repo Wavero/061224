@@ -30,27 +30,22 @@ public class GameView extends SurfaceView implements Runnable {
     boolean doAnimation;
     private long fps;
     private long timeThisFrame;
-    private long lastFrameChangeTime = 0;
-    private int frameLengthInMS = 100;
-    private Rect frameToDraw = new Rect(0,0,frameW,frameH);
+
     private RectF whereToDraw = new RectF(xPos, yPos, xPos + frameW, frameH);
+    private spriteHandler SpriteHandler;
 
+    Bitmap tileSheet = BitmapFactory.decodeResource(getResources(), R.drawable.run);
 
-
-public void spriteLoader(int ResourceID)
-{
-    bitmap = BitmapFactory.decodeResource(getResources(), ResourceID); //run is the png image of whatever animation
-    bitmap = Bitmap.createScaledBitmap(bitmap, frameW * frameCount, frameH, false);
-}
 
     public GameView(Context context) {
         super(context);
         surfaceHolder = getHolder();
 
+        SpriteHandler = new spriteHandler(context, tileSheet, 115,137,7,100);
+
+
 
     }
-
-    //make sprite class, do constructor stuff
 
 
     @Override
@@ -76,38 +71,26 @@ public void spriteLoader(int ResourceID)
     {
         if(surfaceHolder.getSurface().isValid())
         {
-            spriteLoader(R.drawable.run); //Draws Flame Character
+
+
+           // spriteLoader(R.drawable.run); //Draws Flame Character
+            SpriteHandler.manageCurrentFrame(true);
+            //SpriteHandler.setPosition(475,1100);
+
 
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
             whereToDraw.set(xPos,yPos, xPos+frameW, yPos+frameH);
-            manageCurrentFrame(doAnimation);
-            canvas.drawBitmap(bitmap, frameToDraw, whereToDraw, null);
+
+
+            SpriteHandler.draw(canvas);
+            //canvas.drawBitmap(Sprite, frameToDraw, whereToDraw, null);
+
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
 
     }
-    public void manageCurrentFrame(boolean doAnim) //current frame of animation
-    {
-        long time = System.currentTimeMillis();
-        if (doAnim)
-        {
-            if (time > lastFrameChangeTime + frameLengthInMS)
-            {
-                lastFrameChangeTime = time;
-                currentFrame++;
 
-                if (currentFrame >= frameCount)
-                {
-                    currentFrame = 0;
-                }
-            }
-        }
-        frameToDraw.left = currentFrame * frameW;
-        frameToDraw.right = frameToDraw.left + frameW;
-
-
-    }
     public void pause() //pause screen
     {
         playing = false;
