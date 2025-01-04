@@ -34,7 +34,9 @@ public class GameView extends SurfaceView implements Runnable {
     //Background types
     private String backgroundColour;
     private String idleBackground = "#E97451";
-    private String tappedBackground = "#FF0000";
+    private String tappedBackground = "#e88a6e";
+
+
 
     public GameView(Context context) {
         super(context);
