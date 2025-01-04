@@ -18,21 +18,19 @@ public class GameView extends SurfaceView implements Runnable {
     private SurfaceHolder surfaceHolder;
     private volatile boolean playing;
     private Canvas canvas;
-    private Bitmap bitmap;
-    private boolean isMoving;
-    private float xPos = 475, yPos = 1100;
 
-    private int frameW = 115, frameH = 137;
-    private int frameCount = 8;
-    private int currentFrame = 0;
+    private float flamePosX = 375, flamePosY = 1100;
+
+    private int flameFrameW = 115, flameFrameH = 137;
+
     private int fireScore = 0;
 
     boolean doAnimation;
     private long fps;
     private long timeThisFrame;
 
-    private RectF whereToDraw = new RectF(xPos, yPos, xPos + frameW, frameH);
     private spriteHandler SpriteHandler;
+
 
     Bitmap tileSheet = BitmapFactory.decodeResource(getResources(), R.drawable.run);
 
@@ -41,7 +39,7 @@ public class GameView extends SurfaceView implements Runnable {
         super(context);
         surfaceHolder = getHolder();
 
-        SpriteHandler = new spriteHandler(context, tileSheet, 115,137,7,100);
+        SpriteHandler = new spriteHandler(context, tileSheet, tileSheet.getWidth()/8,tileSheet.getHeight(),8,80);
 
 
 
@@ -52,6 +50,7 @@ public class GameView extends SurfaceView implements Runnable {
     public void run(){
         while (playing)
         {
+
             long startFrameTime = System.currentTimeMillis();
             update(); //physics
             draw();   //graphics
@@ -59,12 +58,16 @@ public class GameView extends SurfaceView implements Runnable {
             if(timeThisFrame >= 1)
             {
                 fps = 1000/timeThisFrame;
+
             }
         }
     }
 
     private void update() //physics
     {
+        SpriteHandler.setPosition(375,1100);
+
+
 
     }
     private void draw() //graphics
@@ -75,13 +78,11 @@ public class GameView extends SurfaceView implements Runnable {
 
            // spriteLoader(R.drawable.run); //Draws Flame Character
             SpriteHandler.manageCurrentFrame(true);
-            //SpriteHandler.setPosition(475,1100);
+
 
 
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
-            whereToDraw.set(xPos,yPos, xPos+frameW, yPos+frameH);
-
 
             SpriteHandler.draw(canvas);
             //canvas.drawBitmap(Sprite, frameToDraw, whereToDraw, null);
@@ -118,7 +119,7 @@ public class GameView extends SurfaceView implements Runnable {
         {
             case MotionEvent.ACTION_DOWN: // touch character
                 Log.e("GameView" , "location is " + event.getRawX() + " " + event.getRawY());
-                if (event.getRawX() > xPos & event.getRawX() < xPos + frameW & event.getRawY() > yPos & event.getRawY() < yPos + frameH)
+                if (event.getRawX() > flamePosX & event.getRawX() < flamePosX + flameFrameW & event.getRawY() > flamePosY & event.getRawY() < flamePosY + flameFrameH)
                 {
                     fireScore = fireScore + 1;
                     Log.e("GameView" , "fireScore is " + fireScore);

@@ -20,13 +20,15 @@ public class spriteHandler {
 
     private Rect frameToDraw;
     private RectF whereToDraw;
-    public spriteHandler(Context context, Bitmap tileSheet, int frameW, int frameH, int frameCount, long frameLengthinMS){
+    public spriteHandler(Context context, Bitmap tileSheet, int frameW, int frameH, int frameCount, long frameLengthInMS){
+
+
         this.context = context;
         this.tileSheet = tileSheet;
         this.frameW = frameW;
         this.frameH = frameH;
         this.frameCount = frameCount;
-        this.frameLengthinMS = frameLengthinMS;
+        this.frameLengthinMS = frameLengthInMS;
 
         this.frameToDraw = new Rect(0,0,frameW,frameH);
         this.whereToDraw = new RectF(0,0,frameW,frameH);
@@ -49,6 +51,8 @@ public class spriteHandler {
         }
         frameToDraw.left = currentFrame*frameW;
         frameToDraw.right = frameToDraw.left + frameW;
+        frameToDraw.top = 0;
+        frameToDraw.bottom = frameH;
     }
 
     public void setPosition(float xPos, float yPos) {
