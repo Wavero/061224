@@ -19,27 +19,30 @@ public class GameView extends SurfaceView implements Runnable {
     private volatile boolean playing;
     private Canvas canvas;
 
-    private float flamePosX = 375, flamePosY = 1100;
-
-    private int flameFrameW = 115, flameFrameH = 137;
-
+    private float flamePosX = 120, flamePosY = 900;
+    private int flameFrameW = 320, flameFrameH = 320;
     private int fireScore = 0;
-
-    boolean doAnimation;
+    private int flameFrameRate = 20;
     private long fps;
     private long timeThisFrame;
 
     private spriteHandler SpriteHandler;
 
+    Bitmap idleAnim = BitmapFactory.decodeResource(getResources(), R.drawable.idleflame);
+   // Bitmap tappedAnim = BitmapFactory.decodeResource(getResources(), R.drawable.tappedflame);
 
-    Bitmap tileSheet = BitmapFactory.decodeResource(getResources(), R.drawable.run);
-
+    //Background types
+    private String backgroundColour;
+    private String idleBackground = "#E97451";
+    private String tappedBackground = "#FF0000";
 
     public GameView(Context context) {
         super(context);
         surfaceHolder = getHolder();
 
-        SpriteHandler = new spriteHandler(context, tileSheet, tileSheet.getWidth()/8,tileSheet.getHeight(),8,80);
+        backgroundColour = idleBackground;
+
+        SpriteHandler = new spriteHandler(context, idleAnim, idleAnim.getWidth()/flameFrameRate,idleAnim.getHeight(),flameFrameRate,80);
 
 
 
@@ -65,24 +68,21 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void update() //physics
     {
-        SpriteHandler.setPosition(375,1100);
-
-
+        SpriteHandler.setPosition(flamePosX,flamePosY);
 
     }
+
+
     private void draw() //graphics
     {
         if(surfaceHolder.getSurface().isValid())
         {
-
-
            // spriteLoader(R.drawable.run); //Draws Flame Character
             SpriteHandler.manageCurrentFrame(true);
 
 
-
             canvas = surfaceHolder.lockCanvas();
-            canvas.drawColor(Color.WHITE);
+            canvas.drawColor(Color.parseColor(backgroundColour)); //Brown background
 
             SpriteHandler.draw(canvas);
             //canvas.drawBitmap(Sprite, frameToDraw, whereToDraw, null);
@@ -109,6 +109,14 @@ public class GameView extends SurfaceView implements Runnable {
         gameThread.start();
     }
 
+    private void onFireTapped()
+    {
+        fireScore = fireScore + 1;
+        flameFrameRate = 4;
+        //SpriteHandler.loadSprite(tappedAnim,R.drawable.tappedflame);
+        backgroundColour = tappedBackground;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
@@ -119,35 +127,19 @@ public class GameView extends SurfaceView implements Runnable {
         {
             case MotionEvent.ACTION_DOWN: // touch character
                 Log.e("GameView" , "location is " + event.getRawX() + " " + event.getRawY());
-                if (event.getRawX() > flamePosX & event.getRawX() < flamePosX + flameFrameW & event.getRawY() > flamePosY & event.getRawY() < flamePosY + flameFrameH)
+                if (event.getRawX() > 254 & event.getRawX() < 817 & event.getRawY() > 1064 & event.getRawY() < 1642)
                 {
-                    fireScore = fireScore + 1;
+
                     Log.e("GameView" , "fireScore is " + fireScore);
+                    onFireTapped();
 
                 }
-                if (doAnimation )
-                {
-                    doAnimation = false; //Ends Animation
-                }
-                else
-                    {doAnimation = true;} //Starts Animation
-
-
 
                 break;
             case MotionEvent.ACTION_UP: //Click is lifted up
-                //isMoving = false;
-                //isMoving = true;
+                backgroundColour = idleBackground;
+
                 break;
-
-
-            //case MotionEvent.ACTION_MOVE: //Drags the sprite wherever
-              //  isMoving = false;
-                //xPos = event.getX(pointerIndex) - frameH/2 ;
-                //yPos = event.getY(pointerIndex) - frameW/2;
-                //break;
-
-
 
             default:
                 break;

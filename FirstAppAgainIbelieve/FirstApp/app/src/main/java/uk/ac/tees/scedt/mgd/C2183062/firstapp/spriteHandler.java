@@ -61,8 +61,9 @@ public class spriteHandler {
         whereToDraw.right = xPos + frameW;
         whereToDraw.bottom = yPos + frameH;
     }
-    public Bitmap loadSprite(int resourceID){
+    public Bitmap loadSprite(Bitmap bitmap, int resourceID){
 
+        this.tileSheet = bitmap;
         return BitmapFactory.decodeResource(context.getResources(), resourceID);
 
     }
