@@ -113,21 +113,21 @@ public class GameView extends SurfaceView implements Runnable {
         gameThread.start();
     }
 
-    private void onFireTapped()
+    private void onFirePressed()
     {
         fireScore = fireScore + 1;
 
-        changeFlameSprite(tappedAnim, flamePosX+75,flamePosY+75,4,40);
+        changeFlameAnim(tappedAnim, flamePosX+75,flamePosY+75,4,40);
         backgroundColour = tappedBackground;
     }
     private void onFireReleased()
     {
         backgroundColour = idleBackground;
-        changeFlameSprite(idleAnim, flamePosX,flamePosY,20,80);
+        changeFlameAnim(idleAnim, flamePosX,flamePosY,20,80);
         return;
     }
 
-    private void changeFlameSprite(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
+    private void changeFlameAnim(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
     {
         SpriteHandler = new spriteHandler(context, tileSheet, tileSheet.getWidth()/frameRate,tileSheet.getHeight(),frameRate,frameLength);
         SpriteHandler.setPosition(posX,posY);
@@ -146,7 +146,7 @@ public class GameView extends SurfaceView implements Runnable {
                 {
 
                     Log.e("GameView" , "fireScore is " + fireScore);
-                    onFireTapped();
+                    onFirePressed();
 
                 }
 
