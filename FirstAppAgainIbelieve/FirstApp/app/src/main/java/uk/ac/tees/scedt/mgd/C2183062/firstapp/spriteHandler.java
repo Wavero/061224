@@ -35,7 +35,9 @@ public class spriteHandler {
 
 
     }
-
+    public void changeSpriteInfo(Bitmap tileSheet){
+        this.tileSheet = tileSheet;
+    }
     public void manageCurrentFrame(boolean doAnim){
         long time = System.currentTimeMillis();
         if (doAnim){
@@ -60,18 +62,6 @@ public class spriteHandler {
         whereToDraw.top = yPos;
         whereToDraw.right = xPos + frameW;
         whereToDraw.bottom = yPos + frameH;
-    }
-    public Bitmap loadSprite(Bitmap bitmap, int resourceID){
-
-        this.tileSheet = bitmap;
-        return BitmapFactory.decodeResource(context.getResources(), resourceID);
-
-    }
-
-    public Bitmap scaleSprite(Bitmap bitmap, float scaleW, float scaleH){ //Code to change sprite size
-        int width = (int) (bitmap.getWidth()* scaleW);
-        int height = (int) (bitmap.getHeight()* scaleH);
-        return Bitmap.createScaledBitmap(bitmap, width, height, true);
     }
 
     public void draw(Canvas canvas){

@@ -19,7 +19,8 @@ public class GameView extends SurfaceView implements Runnable {
     private volatile boolean playing;
     private Canvas canvas;
 
-    private float flamePosX = 120, flamePosY = 900;
+    private Context context;
+    private int flamePosX = 120, flamePosY = 900;
     private int flameFrameW = 320, flameFrameH = 320;
     private int fireScore = 0;
     private int flameFrameRate = 20;
@@ -29,7 +30,7 @@ public class GameView extends SurfaceView implements Runnable {
     private spriteHandler SpriteHandler;
 
     Bitmap idleAnim = BitmapFactory.decodeResource(getResources(), R.drawable.idleflame);
-   // Bitmap tappedAnim = BitmapFactory.decodeResource(getResources(), R.drawable.tappedflame);
+    Bitmap tappedAnim = BitmapFactory.decodeResource(getResources(), R.drawable.tappedflame);
 
     //Background types
     private String backgroundColour;
@@ -40,12 +41,13 @@ public class GameView extends SurfaceView implements Runnable {
 
     public GameView(Context context) {
         super(context);
+        this.context = context;
         surfaceHolder = getHolder();
 
         backgroundColour = idleBackground;
 
         SpriteHandler = new spriteHandler(context, idleAnim, idleAnim.getWidth()/flameFrameRate,idleAnim.getHeight(),flameFrameRate,80);
-
+        SpriteHandler.setPosition(flamePosX,flamePosY);
 
 
     }
@@ -70,7 +72,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void update() //physics
     {
-        SpriteHandler.setPosition(flamePosX,flamePosY);
+
 
     }
 
@@ -114,11 +116,22 @@ public class GameView extends SurfaceView implements Runnable {
     private void onFireTapped()
     {
         fireScore = fireScore + 1;
-        flameFrameRate = 4;
-        //SpriteHandler.loadSprite(tappedAnim,R.drawable.tappedflame);
+
+        changeFlameSprite(tappedAnim, flamePosX+75,flamePosY+75,4,40);
         backgroundColour = tappedBackground;
     }
+    private void onFireReleased()
+    {
+        backgroundColour = idleBackground;
+        changeFlameSprite(idleAnim, flamePosX,flamePosY,20,80);
+        return;
+    }
 
+    private void changeFlameSprite(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
+    {
+        SpriteHandler = new spriteHandler(context, tileSheet, tileSheet.getWidth()/frameRate,tileSheet.getHeight(),frameRate,frameLength);
+        SpriteHandler.setPosition(posX,posY);
+    }
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
@@ -139,7 +152,7 @@ public class GameView extends SurfaceView implements Runnable {
 
                 break;
             case MotionEvent.ACTION_UP: //Click is lifted up
-                backgroundColour = idleBackground;
+                onFireReleased();
 
                 break;
 
