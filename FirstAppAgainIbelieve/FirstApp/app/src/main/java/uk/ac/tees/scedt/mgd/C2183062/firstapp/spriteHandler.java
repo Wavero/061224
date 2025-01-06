@@ -63,7 +63,8 @@ public class spriteHandler {
     }
 
     public void draw(Canvas canvas){
-        if (tileSheet != null) {
+        if (tileSheet != null)
+        {
             canvas.drawBitmap(tileSheet, frameToDraw, whereToDraw, null);
         }
     }

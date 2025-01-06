@@ -24,22 +24,35 @@ public class GameView extends SurfaceView implements Runnable {
 
     private Context context;
     private int flamePosX = 100, flamePosY = 900;
+    private int helpPosX = 850, helpPosY = 100;
+
+    private int logPosX = 175,logPosY = 1700;
 
     private int fireScore = 0;
     private int flameFrameRate = 20;
+    private int logFrameRate = 1;
     private long fps;
     private long timeThisFrame;
 
-    private spriteHandler SpriteHandler;
+    private spriteHandler flameSprite;
+    private spriteHandler tapMeSprite;
 
-    Bitmap idleAnim = BitmapFactory.decodeResource(getResources(), R.drawable.idleflame);
-    Bitmap tappedAnim = BitmapFactory.decodeResource(getResources(), R.drawable.tappedflame);
+    private spriteHandler logSprite;
+
+    private spriteHandler helpIcon;
+
+    Bitmap idleAnim;
+    Bitmap tappedAnim;
+    Bitmap tapme;
+    Bitmap logdefault;
+    Bitmap logCatchFire;
+    Bitmap logOnFire;
+    Bitmap helpText;
 
     //Background types
     private String backgroundColour;
     private String idleBackground = "#E97451";
     private String tappedBackground = "#e88a6e";
-
 
 
     public GameView(Context context) {
@@ -49,20 +62,14 @@ public class GameView extends SurfaceView implements Runnable {
 
         backgroundColour = idleBackground;
 
-        SpriteHandler = new spriteHandler(context, idleAnim, idleAnim.getWidth()/flameFrameRate,idleAnim.getHeight(),flameFrameRate,80);
-        SpriteHandler.setPosition(flamePosX,flamePosY);
-
-        scoreText= new Paint();
-        textInitialiser(scoreText,"#FFFFFF",150,true);
+        bitmapInitialisers();
 
     }
-
 
     @Override
     public void run(){
         while (playing)
         {
-
             long startFrameTime = System.currentTimeMillis();
             update(); //physics
             draw();   //graphics
@@ -81,7 +88,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     }
 
-    private void textInitialiser(Paint text, String textColor, int textSize, boolean isAntiAlias)
+    private void textInitialiser(Paint text, String textColor, int textSize, boolean isAntiAlias) //Scalable in case i want more text types
     {
         text.setColor(Color.parseColor(textColor));
         text.setTextSize(textSize);
@@ -92,15 +99,20 @@ public class GameView extends SurfaceView implements Runnable {
     {
         if(surfaceHolder.getSurface().isValid())
         {
-
-            SpriteHandler.manageCurrentFrame(true);
+            flameSprite.manageCurrentFrame(true);
 
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.parseColor(backgroundColour)); //Brown background
-            canvas.drawText("Score: ",340,1850,scoreText);
-            canvas.drawText(" " + fireScore,430,2000,scoreText);
-            SpriteHandler.draw(canvas);
+            canvas.drawText("Score: ",340,1650,scoreText);
+            canvas.drawText(" " + fireScore,430,1800,scoreText);
+            flameSprite.draw(canvas);
+            logSprite.draw(canvas);
+            helpIcon.draw(canvas);
 
+            if (fireScore == 0) //Delete help indicator once it's been used
+            {
+                tapMeSprite.draw(canvas);
+            }
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
 
@@ -127,45 +139,63 @@ public class GameView extends SurfaceView implements Runnable {
     {
         fireScore = fireScore + 1;
 
-        changeFlameAnim(tappedAnim, flamePosX+75,flamePosY+75,4,40);
+        changeFlameAnim(tappedAnim, flamePosX+75,flamePosY-135,4,40);
         backgroundColour = tappedBackground;
         scoreText.setColor(Color.parseColor("#C4C4C4"));
+
     }
     private void onFireReleased()
     {
         backgroundColour = idleBackground;
-        changeFlameAnim(idleAnim, flamePosX,flamePosY,20,80);
+        changeFlameAnim(idleAnim, flamePosX,flamePosY-200,20,80);
         scoreText.setColor(Color.parseColor("#FFFFFF"));
-        return;
     }
 
+    private void onHelpButtonPressed()
+    {
+        logFrameRate = 2;
+        changeLogAnim(logOnFire,logPosX,logPosY,logFrameRate,100);
+    }
+    private void onHelpButtonReleased(){
+
+    }
     private void changeFlameAnim(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
     {
-        SpriteHandler = new spriteHandler(context, tileSheet, tileSheet.getWidth()/frameRate,tileSheet.getHeight(),frameRate,frameLength);
-        SpriteHandler.setPosition(posX,posY);
+        flameSprite = new spriteHandler(context, tileSheet, tileSheet.getWidth()/frameRate,tileSheet.getHeight(),frameRate,frameLength);
+        flameSprite.setPosition(posX,posY);
     }
+
+    //Had to make another function because type spriteHandler wasn't actually changing the animation
+    private void changeLogAnim(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
+
+    {
+        logSprite = new spriteHandler(context, tileSheet, tileSheet.getWidth()/frameRate,tileSheet.getHeight(),frameRate,frameLength);
+        logSprite.setPosition(posX,posY);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
-        int pointerIndex = event.getActionIndex();
-        int pointerID = event.getPointerId(pointerIndex);
-
         switch (event.getAction() & MotionEvent.ACTION_MASK)
         {
             case MotionEvent.ACTION_DOWN: // touch character
                 Log.e("GameView" , "location is " + event.getRawX() + " " + event.getRawY());
+
                 if (event.getRawX() > 254 & event.getRawX() < 817 & event.getRawY() > 1064 & event.getRawY() < 1642)
                 {
-
                     Log.e("GameView" , "fireScore is " + fireScore);
                     onFirePressed();
-
                 }
 
+                if (event.getRawX() > 860 & event.getRawX() < 1010 & event.getRawY() > 110 & event.getRawY() < 250)
+                {
+                    onHelpButtonPressed();
+                }
                 break;
             case MotionEvent.ACTION_UP: //Click is lifted up
+                //Might want to check to see if the button has been pressed (make bools)
                 onFireReleased();
-
+                onHelpButtonReleased();
                 break;
 
             default:
@@ -175,7 +205,34 @@ public class GameView extends SurfaceView implements Runnable {
         return true;
     }
 
+    private void bitmapInitialisers()
+    {
+        idleAnim = BitmapFactory.decodeResource(getResources(), R.drawable.idleflame);
+        tappedAnim = BitmapFactory.decodeResource(getResources(), R.drawable.tappedflame);
 
+        tapme = BitmapFactory.decodeResource(getResources(), R.drawable.tapmesmall);
+        logdefault = BitmapFactory.decodeResource(getResources(), R.drawable.logdef);
+        logCatchFire = BitmapFactory.decodeResource(getResources(), R.drawable.logcatchfire);
+        logOnFire = BitmapFactory.decodeResource(getResources(), R.drawable.logonfire);
+
+        helpText = BitmapFactory.decodeResource(getResources(), R.drawable.helplogo);
+
+        flameSprite = new spriteHandler(context, idleAnim, idleAnim.getWidth()/flameFrameRate,idleAnim.getHeight(),flameFrameRate,80);
+        flameSprite.setPosition(flamePosX,flamePosY-200);
+
+        tapMeSprite = new spriteHandler(context, tapme,tapme.getWidth(),tapme.getHeight(),logFrameRate,100);
+        tapMeSprite.setPosition(flamePosX+tapme.getWidth() +200,flamePosY-tapme.getHeight()-200);
+
+        scoreText= new Paint();
+        textInitialiser(scoreText,"#FFFFFF",150,true);
+
+        logSprite = new spriteHandler(context, logdefault, logdefault.getWidth(),logdefault.getHeight(),1,80);
+        logSprite.setPosition(logPosX,logPosY);
+
+        helpIcon = new spriteHandler(context, helpText,helpText.getWidth(),helpText.getHeight(),1,100);
+        helpIcon.setPosition(helpPosX,helpPosY);
+
+    }
 
 
 }
