@@ -7,10 +7,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.util.Random;
 
 public class GameView extends SurfaceView implements Runnable {
 
@@ -19,8 +27,8 @@ public class GameView extends SurfaceView implements Runnable {
     private SurfaceHolder surfaceHolder;
     private volatile boolean playing;
     private Canvas canvas;
-
     private Paint scoreText;
+    private Paint dangerText;
 
     private Context context;
     private int flamePosX = 100, flamePosY = 900;
@@ -34,27 +42,21 @@ public class GameView extends SurfaceView implements Runnable {
     private long fps;
     private long timeThisFrame;
 
-    private spriteHandler flameSprite;
-    private spriteHandler tapMeSprite;
+    private spriteHandler flameSprite,tapMeSprite,logSprite,helpIcon,helpScreenSprite;
 
-    private spriteHandler logSprite;
-
-    private spriteHandler helpIcon;
-
-    Bitmap idleAnim;
-    Bitmap tappedAnim;
-    Bitmap tapme;
-    Bitmap logdefault;
-    Bitmap logCatchFire;
-    Bitmap logOnFire;
-    Bitmap helpText;
+    Bitmap idleAnim,tappedAnim,tapme,logdefault,logCatchFire,logOnFire,helpText,helpScreen;
 
     //Background types
     private String backgroundColour;
-    private String idleBackground = "#E97451";
-    private String tappedBackground = "#e88a6e";
+    private String idleBackground = "#E97451",tappedBackground = "#e88a6e",dangerBackground = "#FF0000", gameWonBackground = "#008DE5" ;
 
+    private int newRandomNumber;
+    private boolean inDanger = false, isGameWon = false;
 
+    private SensorManager manager;
+    private Sensor sensor;
+
+    private boolean dangerCheckA= false,dangerCheckB = false;
     public GameView(Context context) {
         super(context);
         this.context = context;
@@ -63,9 +65,42 @@ public class GameView extends SurfaceView implements Runnable {
         backgroundColour = idleBackground;
 
         bitmapInitialisers();
+        newRandom();
+
+        manager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+
+        boolean hasAccel = !manager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
+
+        sensor = manager.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
+        SensorEventListener listener = new SensorEventListener() {
+
+            @Override
+            public void onSensorChanged(SensorEvent event)
+            {
+                if(hasAccel) {
+                    if (inDanger) {
+                        if (event.values[0] < -5) {
+
+                            dangerCheckA = true; //Checks if the phone was rotated one way
+                        }
+                        if (event.values[0] > 5) {
+                            dangerCheckB = true;//Checks if the phone was rotated another way
+                        }
+                    }
+                }
+
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy)
+            {
+
+
+            }
+        };
+        manager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
     }
-
     @Override
     public void run(){
         while (playing)
@@ -79,15 +114,46 @@ public class GameView extends SurfaceView implements Runnable {
                 fps = 1000/timeThisFrame;
 
             }
+
         }
     }
+    private void update()
+    {//physics
 
-    private void update() //physics
-    {
-
+        if (fireScore % newRandomNumber == 0 && fireScore != 0)
+        {
+            newRandom();
+            //DO a thing
+            rotateMiniGame();
+        }
+        if (fireScore == 200){ //Game win condition
+            isGameWon = true;
+        }
+        if (dangerCheckA && dangerCheckB) //If both checks have been done, exit mini game and resume main cookie game
+        {
+            inDanger = false;
+            dangerCheckA = false;
+            dangerCheckB = false;
+            onFireReleased();
+            changeLogAnim(logdefault,logPosX,logPosY,1,90);
+        }
 
     }
+    private void rotateMiniGame()
+    {
+        backgroundColour = dangerBackground;
+        inDanger = true;
+        logFrameRate = 2;
+        changeLogAnim(logOnFire,logPosX,logPosY,logFrameRate,100);
 
+    }
+    private int newRandom(){
+
+        Random random = new Random();
+        newRandomNumber = random.nextInt(31) +30; //Random number from 30-60
+        return newRandomNumber;
+
+    }
     private void textInitialiser(Paint text, String textColor, int textSize, boolean isAntiAlias) //Scalable in case i want more text types
     {
         text.setColor(Color.parseColor(textColor));
@@ -97,27 +163,40 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void draw() //graphics
     {
-        if(surfaceHolder.getSurface().isValid())
-        {
+        if(surfaceHolder.getSurface().isValid()) {
             flameSprite.manageCurrentFrame(true);
 
-            canvas = surfaceHolder.lockCanvas();
-            canvas.drawColor(Color.parseColor(backgroundColour)); //Brown background
-            canvas.drawText("Score: ",340,1650,scoreText);
-            canvas.drawText(" " + fireScore,430,1800,scoreText);
-            flameSprite.draw(canvas);
-            logSprite.draw(canvas);
-            helpIcon.draw(canvas);
 
-            if (fireScore == 0) //Delete help indicator once it's been used
+                canvas = surfaceHolder.lockCanvas();
+                canvas.drawColor(Color.parseColor(backgroundColour)); //Brown background
+
+            if (!isGameWon)
             {
-                tapMeSprite.draw(canvas);
+                canvas.drawText("Score: ", 340, 1650, scoreText);
+                canvas.drawText(" " + fireScore, 430, 1800, scoreText);
+                flameSprite.draw(canvas);
+                logSprite.draw(canvas);
+                helpIcon.draw(canvas);
+
+                if (fireScore == 0) //Deletes the "tap me" help indicator once the player has tapped
+                {
+                    tapMeSprite.draw(canvas);
+                }
+                if (inDanger) {
+                    canvas.drawText("LOG ON FIRE! ", 300, 400, dangerText);
+                    canvas.drawText("ROTATE PHONE NOW ", 200, 600, dangerText);
+                }
+                surfaceHolder.unlockCanvasAndPost(canvas);
             }
-            surfaceHolder.unlockCanvasAndPost(canvas);
         }
+            if (isGameWon)
+         {
+               backgroundColour = gameWonBackground;
+              canvas.drawText("YOU WIN",250,1200,scoreText);
+             surfaceHolder.unlockCanvasAndPost(canvas);
+         }
 
     }
-
     public void pause() //pause screen
     {
         playing = false;
@@ -153,8 +232,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void onHelpButtonPressed()
     {
-        logFrameRate = 2;
-        changeLogAnim(logOnFire,logPosX,logPosY,logFrameRate,100);
+
     }
     private void onHelpButtonReleased(){
 
@@ -181,21 +259,24 @@ public class GameView extends SurfaceView implements Runnable {
             case MotionEvent.ACTION_DOWN: // touch character
                 Log.e("GameView" , "location is " + event.getRawX() + " " + event.getRawY());
 
-                if (event.getRawX() > 254 & event.getRawX() < 817 & event.getRawY() > 1064 & event.getRawY() < 1642)
+                if (!inDanger && !isGameWon) //In danger means the rotation mini game is started and you need to get out to click again
                 {
-                    Log.e("GameView" , "fireScore is " + fireScore);
-                    onFirePressed();
-                }
+                    if (event.getRawX() > 254 & event.getRawX() < 817 & event.getRawY() > 1064 & event.getRawY() < 1642) {
+                        Log.e("GameView", "fireScore is " + fireScore);
+                        onFirePressed();
+                    }
 
-                if (event.getRawX() > 860 & event.getRawX() < 1010 & event.getRawY() > 110 & event.getRawY() < 250)
-                {
-                    onHelpButtonPressed();
+                    if (event.getRawX() > 860 & event.getRawX() < 1010 & event.getRawY() > 110 & event.getRawY() < 250) {
+                        onHelpButtonPressed();
+                    }
                 }
                 break;
             case MotionEvent.ACTION_UP: //Click is lifted up
                 //Might want to check to see if the button has been pressed (make bools)
-                onFireReleased();
-                onHelpButtonReleased();
+                if (!inDanger && !isGameWon) {
+                    onFireReleased();
+                    onHelpButtonReleased();
+                }
                 break;
 
             default:
@@ -226,12 +307,18 @@ public class GameView extends SurfaceView implements Runnable {
         scoreText= new Paint();
         textInitialiser(scoreText,"#FFFFFF",150,true);
 
+        dangerText = new Paint();
+        textInitialiser(dangerText,"#330000",75,true);
+
         logSprite = new spriteHandler(context, logdefault, logdefault.getWidth(),logdefault.getHeight(),1,80);
         logSprite.setPosition(logPosX,logPosY);
 
         helpIcon = new spriteHandler(context, helpText,helpText.getWidth(),helpText.getHeight(),1,100);
+
         helpIcon.setPosition(helpPosX,helpPosY);
 
+        //helpScreenSprite = new spriteHandler(context,helpScreen,helpScreen.getWidth(),helpScreen.getHeight(),1,100);
+       // helpScreenSprite.setPosition(logPosX,logPosY);
     }
 
 
