@@ -35,9 +35,7 @@ public class spriteHandler {
 
 
     }
-    public void changeSpriteInfo(Bitmap tileSheet){
-        this.tileSheet = tileSheet;
-    }
+
     public void manageCurrentFrame(boolean doAnim){
         long time = System.currentTimeMillis();
         if (doAnim){
