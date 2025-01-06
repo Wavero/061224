@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
@@ -19,9 +20,11 @@ public class GameView extends SurfaceView implements Runnable {
     private volatile boolean playing;
     private Canvas canvas;
 
+    private Paint scoreText;
+
     private Context context;
-    private int flamePosX = 120, flamePosY = 900;
-    private int flameFrameW = 320, flameFrameH = 320;
+    private int flamePosX = 100, flamePosY = 900;
+
     private int fireScore = 0;
     private int flameFrameRate = 20;
     private long fps;
@@ -49,6 +52,8 @@ public class GameView extends SurfaceView implements Runnable {
         SpriteHandler = new spriteHandler(context, idleAnim, idleAnim.getWidth()/flameFrameRate,idleAnim.getHeight(),flameFrameRate,80);
         SpriteHandler.setPosition(flamePosX,flamePosY);
 
+        scoreText= new Paint();
+        textInitialiser(scoreText,"#FFFFFF",150,true);
 
     }
 
@@ -76,20 +81,25 @@ public class GameView extends SurfaceView implements Runnable {
 
     }
 
+    private void textInitialiser(Paint text, String textColor, int textSize, boolean isAntiAlias)
+    {
+        text.setColor(Color.parseColor(textColor));
+        text.setTextSize(textSize);
+        text.setAntiAlias(isAntiAlias);
+    }
 
     private void draw() //graphics
     {
         if(surfaceHolder.getSurface().isValid())
         {
-           // spriteLoader(R.drawable.run); //Draws Flame Character
-            SpriteHandler.manageCurrentFrame(true);
 
+            SpriteHandler.manageCurrentFrame(true);
 
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.parseColor(backgroundColour)); //Brown background
-
+            canvas.drawText("Score: ",340,1850,scoreText);
+            canvas.drawText(" " + fireScore,430,2000,scoreText);
             SpriteHandler.draw(canvas);
-            //canvas.drawBitmap(Sprite, frameToDraw, whereToDraw, null);
 
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
@@ -119,11 +129,13 @@ public class GameView extends SurfaceView implements Runnable {
 
         changeFlameAnim(tappedAnim, flamePosX+75,flamePosY+75,4,40);
         backgroundColour = tappedBackground;
+        scoreText.setColor(Color.parseColor("#C4C4C4"));
     }
     private void onFireReleased()
     {
         backgroundColour = idleBackground;
         changeFlameAnim(idleAnim, flamePosX,flamePosY,20,80);
+        scoreText.setColor(Color.parseColor("#FFFFFF"));
         return;
     }
 
