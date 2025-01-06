@@ -32,7 +32,6 @@ public class GameView extends SurfaceView implements Runnable {
 
     private Context context;
     private int flamePosX = 100, flamePosY = 900;
-    private int helpPosX = 850, helpPosY = 100;
 
     private int logPosX = 175,logPosY = 1700;
 
@@ -42,9 +41,9 @@ public class GameView extends SurfaceView implements Runnable {
     private long fps;
     private long timeThisFrame;
 
-    private spriteHandler flameSprite,tapMeSprite,logSprite,helpIcon,helpScreenSprite;
+    private spriteHandler flameSprite,tapMeSprite,logSprite;
 
-    Bitmap idleAnim,tappedAnim,tapme,logdefault,logCatchFire,logOnFire,helpText,helpScreen;
+    Bitmap idleAnim,tappedAnim,tapme,logdefault,logCatchFire,logOnFire,helpText;
 
     //Background types
     private String backgroundColour;
@@ -176,7 +175,6 @@ public class GameView extends SurfaceView implements Runnable {
                 canvas.drawText(" " + fireScore, 430, 1800, scoreText);
                 flameSprite.draw(canvas);
                 logSprite.draw(canvas);
-                helpIcon.draw(canvas);
 
                 if (fireScore == 0) //Deletes the "tap me" help indicator once the player has tapped
                 {
@@ -213,7 +211,6 @@ public class GameView extends SurfaceView implements Runnable {
         gameThread = new Thread(this);
         gameThread.start();
     }
-
     private void onFirePressed()
     {
         fireScore = fireScore + 1;
@@ -228,14 +225,6 @@ public class GameView extends SurfaceView implements Runnable {
         backgroundColour = idleBackground;
         changeFlameAnim(idleAnim, flamePosX,flamePosY-200,20,80);
         scoreText.setColor(Color.parseColor("#FFFFFF"));
-    }
-
-    private void onHelpButtonPressed()
-    {
-
-    }
-    private void onHelpButtonReleased(){
-
     }
     private void changeFlameAnim(Bitmap tileSheet,int posX, int posY, int frameRate, int frameLength)
     {
@@ -265,17 +254,12 @@ public class GameView extends SurfaceView implements Runnable {
                         Log.e("GameView", "fireScore is " + fireScore);
                         onFirePressed();
                     }
-
-                    if (event.getRawX() > 860 & event.getRawX() < 1010 & event.getRawY() > 110 & event.getRawY() < 250) {
-                        onHelpButtonPressed();
-                    }
                 }
                 break;
             case MotionEvent.ACTION_UP: //Click is lifted up
                 //Might want to check to see if the button has been pressed (make bools)
                 if (!inDanger && !isGameWon) {
                     onFireReleased();
-                    onHelpButtonReleased();
                 }
                 break;
 
@@ -313,12 +297,9 @@ public class GameView extends SurfaceView implements Runnable {
         logSprite = new spriteHandler(context, logdefault, logdefault.getWidth(),logdefault.getHeight(),1,80);
         logSprite.setPosition(logPosX,logPosY);
 
-        helpIcon = new spriteHandler(context, helpText,helpText.getWidth(),helpText.getHeight(),1,100);
 
-        helpIcon.setPosition(helpPosX,helpPosY);
 
-        //helpScreenSprite = new spriteHandler(context,helpScreen,helpScreen.getWidth(),helpScreen.getHeight(),1,100);
-       // helpScreenSprite.setPosition(logPosX,logPosY);
+
     }
 
 
